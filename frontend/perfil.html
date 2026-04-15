@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="img/icono.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div id="toast"></div>
+
+<header class="header">
+    <a href="index.html" class="logo-container">
+        <img src="img/logo.png">
+        <span>Panel</span>
+    </a>
+</header>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="menu">
+            <button onclick="mostrarSeccion('perfil')">Perfil</button>
+            <button onclick="mostrarSeccion('tareas')">Actividades</button>
+            <button onclick="mostrarSeccion('fase')">Fase estrés</button>
+        </div>
+
+        <button class="cerrar">Cerrar sesión</button>
+
+    </aside>
+
+    <!-- CONTENIDO -->
+    <main class="contenido">
+
+        <!-- PERFIL -->
+        <section id="perfil" class="seccion activa">
+
+            <div class="perfil-top">
+                <img src="img/perfil.png" class="avatar-grande">
+                <div>
+                    <h2>Usuario Ejemplo</h2>
+                    <p>Gestión del bienestar</p>
+                </div>
+            </div>
+
+            <div class="perfil-card">
+
+                <div class="perfil-header">
+                    <h3>Información del perfil</h3>
+                </div>
+
+                <div class="perfil-grid">
+
+                    <div class="campo">
+                        <label>Nombre</label>
+                        <input type="text" value="Usuario Ejemplo">
+                    </div>
+
+                    <div class="campo">
+                        <label>Correo</label>
+                        <input type="email" value="usuario@email.com">
+                    </div>
+
+                    <div class="campo">
+                        <label>Edad</label>
+                        <input type="number" value="21">
+                    </div>
+
+                    <div class="campo">
+                        <label>Tipo de usuario</label>
+                        <select class="select-moderno">
+                            <option>Estudiante</option>
+                            <option>Trabajador</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label>Horas de trabajo</label>
+                        <input type="number" value="8">
+                    </div>
+
+                    <div class="campo">
+                        <label>Horas de descanso</label>
+                        <input type="number" value="6">
+                    </div>
+
+                    <div class="campo">
+                        <label>Nivel de estrés</label>
+                        <select class="select-moderno">
+                            <option>Bajo</option>
+                            <option selected>Medio</option>
+                            <option>Alto</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="acciones">
+                    <button class="btn-principal">Guardar cambios</button>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ACTIVIDADES (VACÍO) -->
+        <section id="tareas" class="seccion">
+            <div class="card-perfil">
+                <h3>Actividades</h3>
+                <p style="opacity: 0.5;">No hay actividades registradas aún.</p>
+            </div>
+        </section>
+
+        <!-- FASE ESTRÉS -->
+        <section id="fase" class="seccion">
+
+            <div class="card-perfil">
+                <h3>Fase de estrés</h3>
+
+                <div class="barra">
+                    <div class="nivel"></div>
+                </div>
+
+                <p>Fase actual: Resistencia</p>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<footer class="footer"></footer>
+
+<script src="app.js"></script>
+</body>
+</html>

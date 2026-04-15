@@ -1,0 +1,64 @@
+-- =========================
+-- TABLA: usuarios
+-- =========================
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    edad INT,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- TABLA: tipos_usuario
+-- =========================
+CREATE TABLE tipos_usuario (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(50) NOT NULL
+);
+
+-- Datos iniciales
+INSERT INTO tipos_usuario (tipo) VALUES
+('Estudiante'),
+('Trabajador');
+
+-- =========================
+-- TABLA: niveles_carga
+-- =========================
+CREATE TABLE niveles_carga (
+    id SERIAL PRIMARY KEY,
+    nivel VARCHAR(20) NOT NULL
+);
+
+-- Datos iniciales
+INSERT INTO niveles_carga (nivel) VALUES
+('Bajo'),
+('Medio'),
+('Alto');
+
+-- =========================
+-- TABLA: perfil_usuario
+-- =========================
+CREATE TABLE perfil_usuario (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    tipo_usuario_id INT NOT NULL,
+    nivel_carga_id INT NOT NULL,
+    horas_trabajo INT,
+    horas_descanso INT,
+
+    -- Relaciones (claves foráneas)
+    CONSTRAINT fk_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_tipo_usuario
+        FOREIGN KEY (tipo_usuario_id)
+        REFERENCES tipos_usuario(id),
+
+    CONSTRAINT fk_nivel_carga
+        FOREIGN KEY (nivel_carga_id)
+        REFERENCES niveles_carga(id)
+);
