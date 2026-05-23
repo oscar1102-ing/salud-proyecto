@@ -45,3 +45,34 @@ def obtener_perfil_completo(usuario_id: int):
     conexion.close()
     
     return perfil
+    
+def actualizar_perfil(usuario_id: int, datos: dict):
+    conexion = conectar_base()
+    cursor = conexion.cursor()
+    
+    consulta = """
+    UPDATE usuarios SET nombre = %s, edad = %s WHERE id = %s
+    """
+    cursor.execute(consulta, (datos["nombre"], datos["edad"], usuario_id))
+    
+    consulta_perfil = """
+    UPDATE perfil_usuario SET 
+        tipo_usuario_id = (SELECT id FROM tipos_usuario WHERE tipo = %s),
+        nivel_carga_id = (SELECT id FROM niveles_carga WHERE nivel = %s),
+        horas_trabajo = %s,
+        horas_descanso = %s
+    WHERE usuario_id = %s
+    """
+    cursor.execute(consulta_perfil, (
+        datos["tipo_usuario"],
+        datos["nivel_carga"],
+        datos["horas_trabajo"],
+        datos["horas_descanso"],
+        usuario_id
+    ))
+    
+    conexion.commit()
+    cursor.close()
+    conexion.close()
+    
+    return {"mensaje": "Perfil actualizado correctamente"}

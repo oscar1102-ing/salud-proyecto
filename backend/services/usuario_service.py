@@ -57,13 +57,15 @@ def registrar_usuario(datos):
 
 def login_usuario(data):
     usuario = repo.buscar_por_email(data.email)
-
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    password_bd = usuario["password"]
-
-    if not bcrypt.checkpw(data.password.encode('utf-8'), password_bd.encode('utf-8')):
+    if not bcrypt.checkpw(data.password.encode('utf-8'), usuario["password"].encode('utf-8')):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-    return {"mensaje": "Login exitoso"}
+    # Devuelve id y nombre para guardarlo en el frontend
+    return {
+        "mensaje": "Login exitoso",
+        "usuario_id": usuario["id"],
+        "nombre": usuario["nombre"]
+    }

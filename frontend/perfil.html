@@ -13,6 +13,28 @@
 
 <div id="toast"></div>
 
+<!-- TEMPORIZADOR FLOTANTE -->
+<div id="timer-flotante" style="display:none;">
+    <div class="timer-flotante-contenido">
+        <div class="timer-flotante-info">
+            <span class="timer-flotante-icono">⏱</span>
+            <div>
+                <p class="timer-flotante-nombre" id="timer-nombre">Actividad</p>
+                <p class="timer-flotante-tiempo" id="timer-tiempo">00:00</p>
+                <p class="timer-pausas-texto" id="timer-pausas-label" style="display:none; font-size:0.72rem; color:#94A3B8;">⏸ En pausa</p>
+            </div>
+        </div>
+        <div class="timer-flotante-acciones">
+            <button class="timer-btn-completar" onclick="completarActividad()">✓ Completé</button>
+            <button class="timer-btn-pausar" id="btn-pausar" onclick="pausarReanudarActividad()">⏸ Pausar</button>
+            <button class="timer-btn-cancelar" onclick="noCompletarActividad()">✕ No completé</button>
+        </div>
+    </div>
+    <div class="timer-barra-wrap">
+        <div class="timer-barra-progreso" id="timer-barra"></div>
+    </div>
+</div>
+
 <header class="header">
     <a href="index.html" class="logo-container">
         <img src="img/logo.png">
@@ -26,20 +48,133 @@
     <aside class="sidebar">
 
         <div class="menu">
-            <button onclick="mostrarSeccion('perfil')">Perfil</button>
-            <button onclick="mostrarSeccion('tareas')">Actividades</button>
-            <button onclick="mostrarSeccion('fase')">Fase estrés</button>
+            <button id="btn-inicio" onclick="mostrarSeccion('inicio')">Inicio</button>
+            <button id="btn-tareas" onclick="mostrarSeccion('tareas')">Actividades</button>
+            <button id="btn-fase" onclick="mostrarSeccion('fase')">Fase estrés</button>
+            <button id="btn-historial" onclick="mostrarSeccion('historial')">Historial</button>
+            <button id="btn-perfil" onclick="mostrarSeccion('perfil')">Perfil</button>
         </div>
 
-        <button class="cerrar">Cerrar sesión</button>
+                <!-- Cambia el botón actual por este -->
+        <button class="cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
 
     </aside>
 
     <!-- CONTENIDO -->
     <main class="contenido">
+    
+        <section id="inicio" class="seccion activa">
+
+            <!-- Bienvenida -->
+            <div class="dashboard-bienvenida">
+                <div>
+                    <h2 id="inicio-nombre">Hola 👋</h2>
+                    <p id="inicio-fecha"></p>
+                </div>
+                <div class="nivel-estres-badge estres-medio" id="inicio-badge">Calculando...</div>
+            </div>
+
+            <!-- Tarjetas resumen -->
+            <div class="dashboard-cards">
+                <div class="dash-card">
+                    <div class="dash-card-icon">⏱</div>
+                    <div>
+                        <p class="dash-card-label">Horas de trabajo</p>
+                        <p class="dash-card-valor" id="inicio-horas-trabajo">—</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon">😴</div>
+                    <div>
+                        <p class="dash-card-label">Horas de descanso</p>
+                        <p class="dash-card-valor" id="inicio-horas-descanso">—</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon">📋</div>
+                    <div>
+                        <p class="dash-card-label">Actividades hoy</p>
+                        <p class="dash-card-valor" id="inicio-actividades-hoy">—</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon">✅</div>
+                    <div>
+                        <p class="dash-card-label">Completadas</p>
+                        <p class="dash-card-valor" id="inicio-completadas">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid dos columnas -->
+            <div class="dashboard-grid">
+
+                <!-- Columna izquierda -->
+                <div class="dashboard-columna-izq">
+
+                    <!-- Actividades de hoy -->
+                    <div class="dash-panel">
+                        <div class="dash-panel-header">
+                            <h3>Actividades de hoy</h3>
+                            <button class="btn-secundario" onclick="mostrarSeccion('tareas')" style="padding:6px 14px; font-size:0.85rem;">Ver todas →</button>
+                        </div>
+                        <div id="inicio-lista-hoy">
+                            <p style="opacity:0.4; font-size:0.9rem;">Cargando...</p>
+                        </div>
+                    </div>
+
+                    <!-- Recomendación -->
+                    <div class="recomendacion-dia">
+                        <h3>💡 Recomendación del día</h3>
+                        <p id="inicio-recomendacion">Cargando...</p>
+                    </div>
+
+                </div>
+
+                <!-- Columna derecha -->
+                <div class="dashboard-columna-der">
+
+                    <!-- Nivel de estrés -->
+                    <div class="dash-panel">
+                        <div class="dash-panel-header">
+                            <h3>Nivel de estrés</h3>
+                            <span class="nivel-estres-badge" id="inicio-badge-2">—</span>
+                        </div>
+                        <div class="estres-barra-wrap">
+                            <div class="estres-barra-labels">
+                                <span>Bajo</span>
+                                <span>Medio</span>
+                                <span>Alto</span>
+                            </div>
+                            <div class="barra">
+                                <div class="nivel" id="barra-estres"></div>
+                            </div>
+                        </div>
+                        <p style="font-size:0.82rem; color:#64748B; margin-top:0.5rem;" id="inicio-estres-detalle">Calculando tu nivel según tus actividades y hábitos...</p>
+                    </div>
+
+                    <!-- Encuesta -->
+                    <div class="dash-panel">
+                        <div class="dash-panel-header">
+                            <h3>¿Cómo te sientes hoy?</h3>
+                        </div>
+                        <div class="encuesta-opciones">
+                            <button class="encuesta-btn" onclick="responderEncuesta('Muy bien', 1)">😄 Muy bien</button>
+                            <button class="encuesta-btn" onclick="responderEncuesta('Bien', 2)">🙂 Bien</button>
+                            <button class="encuesta-btn" onclick="responderEncuesta('Regular', 3)">😐 Regular</button>
+                            <button class="encuesta-btn" onclick="responderEncuesta('Mal', 4)">😟 Mal</button>
+                            <button class="encuesta-btn" onclick="responderEncuesta('Muy mal', 5)">😩 Muy mal</button>
+                        </div>
+                        <p id="encuesta-respuesta" style="font-size:0.85rem; color:#4CB8A4; margin-top:0.75rem; min-height:1.2rem;"></p>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
 
         <!-- PERFIL -->
-        <section id="perfil" class="seccion activa">
+        <section id="perfil" class="seccion">
 
             <div class="perfil-top">
                 <img src="img/perfil.png" class="avatar-grande">
@@ -59,42 +194,36 @@
 
                     <div class="campo">
                         <label>Nombre</label>
-                        <input type="text" value="Usuario Ejemplo">
+                        <input type="text" id="perfil-nombre">
                     </div>
-
                     <div class="campo">
                         <label>Correo</label>
-                        <input type="email" value="usuario@email.com">
+                        <input type="email" id="perfil-email">
                     </div>
-
                     <div class="campo">
                         <label>Edad</label>
-                        <input type="number" value="21">
+                        <input type="number" id="perfil-edad">
                     </div>
-
                     <div class="campo">
                         <label>Tipo de usuario</label>
-                        <select class="select-moderno">
+                        <select id="perfil-tipo" class="select-moderno">
                             <option>Estudiante</option>
                             <option>Trabajador</option>
                         </select>
                     </div>
-
                     <div class="campo">
                         <label>Horas de trabajo</label>
-                        <input type="number" value="8">
+                        <input type="number" id="perfil-horas-trabajo">
                     </div>
-
                     <div class="campo">
                         <label>Horas de descanso</label>
-                        <input type="number" value="6">
+                        <input type="number" id="perfil-horas-descanso">
                     </div>
-
                     <div class="campo">
                         <label>Nivel de estrés</label>
-                        <select class="select-moderno">
+                        <select id="perfil-nivel" class="select-moderno">
                             <option>Bajo</option>
-                            <option selected>Medio</option>
+                            <option>Medio</option>
                             <option>Alto</option>
                         </select>
                     </div>
@@ -102,7 +231,7 @@
                 </div>
 
                 <div class="acciones">
-                    <button class="btn-principal">Guardar cambios</button>
+                    <button class="btn-principal" onclick="guardarPerfil()">Guardar cambios</button>
                 </div>
 
             </div>
@@ -111,23 +240,165 @@
 
         <!-- ACTIVIDADES (VACÍO) -->
         <section id="tareas" class="seccion">
-            <div class="card-perfil">
-                <h3>Actividades</h3>
-                <p style="opacity: 0.5;">No hay actividades registradas aún.</p>
+            <div class="perfil-card" style="margin-bottom:1.5rem;">
+                <div class="perfil-header">
+                    <h3>Actividades</h3>
+                    <button class="btn-principal" onclick="mostrarFormActividad()">+ Nueva actividad</button>
+                </div>
+
+                <!-- Formulario nueva actividad -->
+                <div id="form-actividad" style="display:none;">
+                    <div class="perfil-grid">
+                        <div class="campo">
+                            <label>Nombre</label>
+                            <input type="text" id="act-nombre" placeholder="Nombre de la actividad">
+                        </div>
+                        <div class="campo">
+                            <label>Fecha</label>
+                            <input type="date" id="act-fecha">
+                        </div>
+                        <div class="campo">
+                            <label>Duración (minutos)</label>
+                            <input type="number" id="act-duracion" placeholder="60" min="1">
+                        </div>
+                        <div class="campo">
+                            <label>Categoría</label>
+                            <select id="act-categoria" class="select-moderno">
+                                <option>Trabajo</option>
+                                <option>Estudio</option>
+                                <option>Descanso</option>
+                                <option>Ejercicio</option>
+                                <option>Personal</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Prioridad</label>
+                            <select id="act-prioridad" class="select-moderno">
+                                <option>Alta</option>
+                                <option selected>Media</option>
+                                <option>Baja</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Descripción</label>
+                            <input type="text" id="act-descripcion" placeholder="Opcional">
+                        </div>
+                    </div>
+                    <div class="acciones">
+                        <button class="btn-principal" onclick="crearActividad()">Guardar actividad</button>
+                        <button class="btn-secundario" onclick="ocultarFormActividad()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALENDARIO -->
+            <div class="perfil-card" style="margin-bottom:1.5rem;">
+                <div class="calendario-header">
+                    <button class="cal-nav" onclick="cambiarMes(-1)">‹</button>
+                    <h3 id="cal-titulo">Mayo 2026</h3>
+                    <button class="cal-nav" onclick="cambiarMes(1)">›</button>
+                </div>
+                <div class="calendario-dias-semana">
+                    <span>Dom</span><span>Lun</span><span>Mar</span>
+                    <span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                </div>
+                <div class="calendario-grid" id="calendario-grid"></div>
+                <div class="calendario-leyenda">
+                    <span><i class="leyenda-dot dot-completada"></i> Completada</span>
+                    <span><i class="leyenda-dot dot-parcial"></i> Parcial</span>
+                    <span><i class="leyenda-dot dot-pendiente"></i> Pendiente</span>
+                </div>
+            </div>
+
+            <!-- ACTIVIDADES DEL DÍA SELECCIONADO -->
+            <div class="perfil-card">
+                <div class="perfil-header">
+                    <h3 id="lista-fecha-titulo">Actividades</h3>
+                </div>
+                <div id="lista-actividades">
+                    <p style="opacity:0.4; font-size:0.9rem;">Selecciona un día en el calendario.</p>
+                </div>
             </div>
         </section>
 
         <!-- FASE ESTRÉS -->
         <section id="fase" class="seccion">
-
-            <div class="card-perfil">
+            <div class="perfil-card">
                 <h3>Fase de estrés</h3>
 
+                <div class="fase-indicador" id="fase-badge">Calculando...</div>
+
                 <div class="barra">
-                    <div class="nivel"></div>
+                    <div class="nivel" style="transition: width 0.8s ease;"></div>
                 </div>
 
-                <p>Fase actual: Resistencia</p>
+                <p id="fase-texto">Fase actual: —</p>
+
+                <h4 style="margin-top: 24px; margin-bottom: 12px;">Recomendaciones</h4>
+                <div id="lista-recomendaciones">
+                    <p style="opacity:0.5">Cargando recomendaciones...</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- HISTORIAL -->
+        
+        <section id="historial" class="seccion">
+
+            <!-- Calendario historial -->
+            <div class="perfil-card" style="margin-bottom:1.5rem;">
+                <div class="perfil-header">
+                    <h3>Historial de actividades</h3>
+                    <button class="btn-secundario" onclick="cargarHistorial()" style="padding:6px 14px; font-size:0.85rem;">↻ Actualizar</button>
+                </div>
+
+                <!-- Navegación mes -->
+                <div class="calendario-header">
+                    <button class="cal-nav" onclick="cambiarMesHistorial(-1)">‹</button>
+                    <h3 id="hist-cal-titulo">Mayo 2026</h3>
+                    <button class="cal-nav" onclick="cambiarMesHistorial(1)">›</button>
+                </div>
+
+                <!-- Días semana -->
+                <div class="calendario-dias-semana">
+                    <span>Dom</span><span>Lun</span><span>Mar</span>
+                    <span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                </div>
+
+                <!-- Grid -->
+                <div class="calendario-grid" id="hist-calendario-grid"></div>
+
+                <!-- Leyenda -->
+                <div class="calendario-leyenda">
+                    <span><i class="leyenda-dot dot-completada"></i> Completada</span>
+                    <span><i class="leyenda-dot dot-parcial"></i> En progreso</span>
+                    <span><i class="leyenda-dot dot-pendiente"></i> Pendiente</span>
+                </div>
+            </div>
+
+            <!-- Panel del día seleccionado -->
+            <div id="hist-dia-panel" style="display:none;">
+
+                <!-- Resumen estadístico del día -->
+                <div class="hist-dia-stats" id="hist-dia-stats"></div>
+
+                <!-- Lista de actividades del día -->
+                <div class="perfil-card">
+                    <div class="perfil-header">
+                        <h3 id="hist-dia-titulo">Actividades del día</h3>
+                    </div>
+                    <div id="hist-dia-lista"></div>
+                </div>
+
+                <!-- Detalle expandido de una actividad -->
+                <div id="historial-detalle" style="display:none; margin-top:1.5rem;" class="perfil-card">
+                    <div class="perfil-header">
+                        <h3 id="detalle-nombre">Detalle</h3>
+                        <button class="btn-secundario" onclick="cerrarDetalle()" style="padding:6px 14px; font-size:0.85rem;">✕ Cerrar</button>
+                    </div>
+                    <div id="detalle-contenido"></div>
+                </div>
+
             </div>
 
         </section>

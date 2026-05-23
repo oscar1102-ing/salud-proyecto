@@ -1,7 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from backend.routers import usuarios_router
 from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
@@ -18,6 +22,7 @@ app.add_middleware(
 def root():
     return {"mensaje": "API funcionando"}
 
+# main.py — sin prefix
 app.include_router(usuarios_router.router)
 
 # Frontend en otra ruta

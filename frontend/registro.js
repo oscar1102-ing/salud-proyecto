@@ -50,6 +50,11 @@ async function validarRegistro(event) {
         mostrarModal(" El nombre debe tener al menos 3 caracteres", "error");
         return;
     }
+    
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+        mostrarModal("El nombre solo puede contener letras", "Error");
+        return;
+    }
 
     if (!validarEmail(email)) {
         mostrarModal(" Correo electrónico inválido", "error");
@@ -80,6 +85,15 @@ async function validarRegistro(event) {
         mostrarModal(" Horas de descanso deben estar entre 0 y 24", "error");
         return;
     }
+    
+    if (horasTrabajo === "" || parseInt(horasTrabajo) < 0) {
+        mostrarModal("Horas de trabajo no pueden ser negativas", "Error");
+        return;
+    }
+    if (horasDescanso === "" || parseInt(horasDescanso) < 0) {
+        mostrarModal("Horas de descanso no pueden ser negativas", "Error");
+        return;
+    }
 
     // Botón cargando
     const boton = event.target.querySelector('button[type="submit"]');
@@ -99,7 +113,7 @@ async function validarRegistro(event) {
     };
 
     try {
-        const respuesta = await fetch('http://localhost:8001/api/registro', {
+        const respuesta = await fetch('/api/registro', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
