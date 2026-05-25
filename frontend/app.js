@@ -515,13 +515,16 @@ async function crearActividad() {
     const usuarioId = localStorage.getItem("usuario_id");
     const nombre = document.getElementById("act-nombre").value.trim();
     const fecha  = document.getElementById("act-fecha").value;
+    const duracion = parseInt(document.getElementById("act-duracion").value) || 0;
+    if (duracion <= 0) { mostrarToast("La duración debe ser mayor a 0 minutos"); return; }
+    if (duracion > 480) { mostrarToast("La duración no puede superar 480 minutos"); return; }
 
     if (!nombre) { mostrarToast("El nombre es obligatorio"); return; }
     if (!fecha)  { mostrarToast("La fecha es obligatoria");  return; }
 
     const datos = {
         nombre, fecha,
-        duracion:    parseInt(document.getElementById("act-duracion").value)  || 30,
+        duracion,
         categoria:   document.getElementById("act-categoria").value,
         prioridad:   document.getElementById("act-prioridad").value,
         descripcion: document.getElementById("act-descripcion").value.trim()

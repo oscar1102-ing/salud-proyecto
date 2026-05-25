@@ -65,6 +65,11 @@ async function validarRegistro(event) {
         mostrarModal(" La contraseña debe tener mínimo 6 caracteres", "error");
         return;
     }
+    
+    if (edad < 0 || edad > 120) {
+        mostrarError("Ingresa una edad válida");
+        return;
+    }
 
     if (!tipoUsuario) {
         mostrarModal(" Selecciona un tipo de usuario", "error");

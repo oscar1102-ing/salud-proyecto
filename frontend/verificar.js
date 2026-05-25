@@ -153,3 +153,37 @@ async function reenviarCodigo() {
         }
     }, 1000);
 }
+
+function mostrarCambiarCorreo() {
+    const form = document.getElementById("form-cambiar-correo");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+async function cambiarCorreo() {
+    const nuevoCorreo = document.getElementById("nuevo-correo").value.trim();
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!regex.test(nuevoCorreo)) {
+        document.getElementById("mfa-error").textContent = "Correo no válido";
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/mfa/cambiar-correo/${usuarioId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: nuevoCorreo, tipo })
+        });
+
+        if (res.ok) {
+            document.getElementById("form-cambiar-correo").style.display = "none";
+            document.getElementById("mfa-exito").textContent = "✅ Correo actualizado. Revisa tu bandeja.";
+            document.getElementById("mfa-error").textContent = "";
+        } else {
+            const data = await res.json();
+            document.getElementById("mfa-error").textContent = data.detail || "Error al actualizar";
+        }
+    } catch (e) {
+        document.getElementById("mfa-error").textContent = "Error de conexión";
+    }
+}
