@@ -408,15 +408,18 @@ def verificar_mfa(usuario_id: int, datos: dict):
 @router.put("/mfa/cambiar-correo/{usuario_id}")
 def cambiar_correo(usuario_id: int, datos: dict):
     from backend.database import conectar_base
+    from backend.services import email_service
+    
     email = datos.get("email", "").strip()
     tipo  = datos.get("tipo", "registro")
     
     if not email:
         raise HTTPException(status_code=400, detail="Correo requerido")
     
-    # Verificar que no esté en uso por otro usuario
     conn = conectar_base()
     cur  = conn.cursor()
+    
+    # Verificar que no esté en uso por otro usuario
     cur.execute("SELECT id FROM usuarios WHERE email = %s AND id != %s", (email, usuario_id))
     if cur.fetchone():
         cur.close(); conn.close()
@@ -427,20 +430,20 @@ def cambiar_correo(usuario_id: int, datos: dict):
     conn.commit()
     cur.close(); conn.close()
     
-    # Reenviar código al nuevo correo
-    from backend.services import email_service
+    # Generar y guardar nuevo código
     codigo = email_service.generar_codigo()
     
     conn = conectar_base()
     cur  = conn.cursor()
     cur.execute("""
-        INSERT INTO codigos_mfa (usuario_id, codigo, expira_en)
-        VALUES (%s, %s, NOW() + INTERVAL '10 minutes')
+        INSERT INTO codigos_mfa (usuario_id, codigo, tipo, expira_en)
+        VALUES (%s, %s, %s, NOW() + INTERVAL '10 minutes')
         ON CONFLICT (usuario_id) DO UPDATE 
-        SET codigo = %s, expira_en = NOW() + INTERVAL '10 minutes'
-    """, (usuario_id, codigo, codigo))
+        SET codigo = %s, tipo = %s, expira_en = NOW() + INTERVAL '10 minutes'
+    """, (usuario_id, codigo, tipo, codigo, tipo))
     conn.commit()
     cur.close(); conn.close()
     
+    # Enviar código al nuevo correo
     email_service.enviar_codigo(email, codigo, tipo)
     return {"mensaje": "Correo actualizado y código enviado"}
