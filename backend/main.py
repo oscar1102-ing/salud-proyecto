@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
+import os
 load_dotenv()
-
+print("API KEY CARGADA:", os.getenv("GEMINI_API_KEY", "NO ENCONTRADA"))
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from backend.routers import usuarios_router

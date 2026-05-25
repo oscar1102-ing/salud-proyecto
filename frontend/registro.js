@@ -123,14 +123,14 @@ async function validarRegistro(event) {
 
         const resultado = await respuesta.json();
 
+        // Reemplaza el bloque if (respuesta.ok) en validarRegistro
         if (respuesta.ok) {
-            mostrarModal("¡Registro exitoso!");
-            document.getElementById("formRegistro").reset();
-
+            const usuarioId = resultado.usuario?.id || resultado.usuario?.usuario_id;
+            mostrarModal("¡Registro exitoso! Te enviamos un código a tu correo.", "Éxito");
             setTimeout(() => {
-                window.location.href = "login.html";
+                window.location.href = `verificar.html?id=${usuarioId}&tipo=registro`;
             }, 2000);
-        } else {
+        }else {
             mostrarModal(" " + (resultado.detail || "Error al registrarse"), "error");
         }
 

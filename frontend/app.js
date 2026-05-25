@@ -54,11 +54,33 @@ async function validarLogin(event) {
         if (respuesta.ok) {
             localStorage.setItem("usuario_id", resultado.usuario_id);
             localStorage.setItem("usuario_nombre", resultado.nombre);
-            mostrarModal("Ingreso exitoso", "Éxito");
-            setTimeout(() => { window.location.href = "perfil.html"; }, 1500);
+
+            try {
+                await fetch(`/api/mfa/enviar/${resultado.usuario_id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tipo: "login" })
+                });
+                mostrarModal("Código enviado a tu correo", "Verificación");
+                setTimeout(() => {
+                    window.location.href = `verificar.html?id=${resultado.usuario_id}&tipo=login`;
+                }, 1500);
+            } catch (e) {
+                mostrarModal("Error enviando código MFA", "Error");
+            }
+
+        } else if (respuesta.status === 403) {
+            // Cuenta no verificada — obtener id del header
+            const usuarioIdTemp = respuesta.headers.get("X-Usuario-Id");
+            if (usuarioIdTemp) {
+                localStorage.setItem("usuario_id_temp", usuarioIdTemp);
+            }
+            mostrarModalVerificacion(resultado.detail);
+
         } else {
             mostrarModal(resultado.detail || "Error al iniciar sesión", "Error");
         }
+
     } catch (error) {
         console.error(error);
         mostrarModal("Error de conexión con el servidor", "Error");
@@ -67,6 +89,70 @@ async function validarLogin(event) {
         boton.disabled = false;
     }
 }
+
+function mostrarModalVerificacion(mensaje) {
+    document.getElementById("modalTitulo").innerText = "Cuenta no verificada";
+    document.getElementById("modalMensaje").innerText = mensaje;
+
+    const btnCerrar = document.querySelector(".btn-cerrar");
+    btnCerrar.innerHTML = `
+        <label for="btn-modal" onclick="irAVerificar()" 
+               style="padding:8px 14px; background:#4CB8A4; color:white; border-radius:6px; cursor:pointer;">
+            Verificar ahora
+        </label>
+        <label for="btn-modal" 
+               style="padding:8px 14px; background:#334155; color:white; border-radius:6px; cursor:pointer; margin-left:8px;">
+            Cerrar
+        </label>
+    `;
+    document.getElementById("btn-modal").checked = true;
+}
+
+function irAVerificar() {
+    const usuarioId = localStorage.getItem("usuario_id_temp");
+    if (!usuarioId) {
+        mostrarModal("No se pudo obtener el usuario. Regístrate de nuevo.", "Error");
+        return;
+    }
+    window.location.href = `verificar.html?id=${usuarioId}&tipo=registro`;
+}
+function mostrarModalVerificacion(mensaje) {
+    document.getElementById("modalTitulo").innerText = "Cuenta no verificada";
+    document.getElementById("modalMensaje").innerText = mensaje;
+
+    const btnCerrar = document.querySelector(".btn-cerrar");
+    btnCerrar.innerHTML = `
+        <label for="btn-modal" onclick="irAVerificar()" 
+               style="padding:8px 14px; background:#4CB8A4; color:white; border-radius:6px; cursor:pointer;">
+            Verificar ahora
+        </label>
+        <label for="btn-modal" 
+               style="padding:8px 14px; background:#334155; color:white; border-radius:6px; cursor:pointer; margin-left:8px;">
+            Cerrar
+        </label>
+    `;
+    document.getElementById("btn-modal").checked = true;
+}
+
+function irAVerificar() {
+    const usuarioId = localStorage.getItem("usuario_id_temp");
+    if (!usuarioId) {
+        mostrarModal("No se pudo obtener el usuario. Regístrate de nuevo.", "Error");
+        return;
+    }
+    window.location.href = `verificar.html?id=${usuarioId}&tipo=registro`;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 // ==================== SESIÓN Y PERFIL ====================
 async function iniciarPerfil() {
@@ -87,6 +173,7 @@ async function iniciarPerfil() {
 
         pintarPerfil(perfil);
         cargarInicio(perfil, actividades);
+        verificarEncuestaHoy();
 
     } catch (error) {
         console.error("Error cargando datos:", error);
@@ -123,16 +210,10 @@ function mostrarSeccion(id) {
         cargarHistorial();
     }
     
-    if (id === "fase") {
-        cargarFaseEstres();
-    }
+    if (id === "analisis") cargarAnalisis();
 }
 
-async function obtenerAnalisisIA(usuarioId) {
-    const res = await fetch(`/api/gemini/analisis/${usuarioId}`);
-    if (!res.ok) throw new Error("Error al obtener análisis");
-    return await res.json();
-}
+
 
 // Nueva función para cargar la fase de estrés en su pestaña
 async function cargarFaseEstres() {
@@ -144,37 +225,23 @@ async function cargarFaseEstres() {
     const listaRecomendaciones = document.getElementById("lista-recomendaciones");
     const barraProgreso      = document.querySelector("#fase .barra .nivel");
 
-    faseBadge.textContent = "Analizando con IA...";
-    listaRecomendaciones.innerHTML = `
-        <div style="display:flex; align-items:center; gap:0.75rem; opacity:0.6; padding:1rem 0;">
-            <span style="font-size:1.2rem;">🤖</span>
-            <span style="font-size:0.9rem;">Gemini está analizando tu perfil completo...</span>
-        </div>`;
+    faseBadge.textContent = "Calculando...";
 
     try {
-        const datos = await obtenerAnalisisIA(usuarioId);
+        const res = await fetch(`/api/estres/${usuarioId}`);
+        const datos = await res.json();
 
-        // Badge de fase
         faseBadge.textContent = datos.fase;
         faseBadge.className = `fase-indicador fase-${datos.fase.toLowerCase()}`;
 
-        // Texto y barra
         faseTexto.textContent = `Fase actual: ${datos.fase} — Puntuación: ${datos.puntos}/12`;
+
         if (barraProgreso) {
             barraProgreso.style.width = datos.porcentaje + "%";
             barraProgreso.style.backgroundColor = datos.color;
         }
 
-        // Resumen de IA si existe
-        const resumenHTML = datos.resumen
-            ? `<div class="gemini-resumen">
-                <span class="gemini-badge">${datos.ia_activa ? "🤖 Análisis IA" : "📊 Análisis"}</span>
-                <p>${datos.resumen}</p>
-               </div>`
-            : "";
-
-        // Recomendaciones
-        listaRecomendaciones.innerHTML = resumenHTML + datos.recomendaciones.map(rec => `
+        listaRecomendaciones.innerHTML = datos.recomendaciones.map(rec => `
             <div class="recomendacion-item">
                 <div class="rec-icono">${rec.icono}</div>
                 <div class="rec-texto">${rec.texto}</div>
@@ -219,6 +286,7 @@ async function guardarPerfil() {
         if (respuesta.ok) {
             localStorage.setItem("usuario_nombre", datos.nombre);
             mostrarToast("Perfil actualizado correctamente");
+            // Invalidar caché para que Gemini regenere con el nuevo perfil
             // Refrescar análisis IA después de guardar perfil
             const uid = localStorage.getItem("usuario_id");
             const [rp, ra] = await Promise.all([
@@ -276,10 +344,11 @@ async function cargarInicio(perfil, actividades) {
         `).join("");
     }
 
-    // Análisis con IA
+    // Nivel de estrés
     const usuarioId = localStorage.getItem("usuario_id");
     try {
-        const datos = await obtenerAnalisisIA(usuarioId);
+        const res = await fetch(`/api/estres/${usuarioId}`);
+        const datos = await res.json();
 
         const badge1 = document.getElementById("inicio-badge");
         const badge2 = document.getElementById("inicio-badge-2");
@@ -296,7 +365,7 @@ async function cargarInicio(perfil, actividades) {
         }
 
         const detalle = document.getElementById("inicio-estres-detalle");
-        if (detalle) detalle.textContent = `Puntuación: ${datos.puntos}/12 — ${datos.resumen || getDescripcionFase(datos.fase)}`;
+        if (detalle) detalle.textContent = `Puntuación: ${datos.puntos}/12 — ${getDescripcionFase(datos.fase)}`;
 
         const rec = document.getElementById("inicio-recomendacion");
         if (rec && datos.recomendaciones.length > 0) {
@@ -304,7 +373,7 @@ async function cargarInicio(perfil, actividades) {
         }
 
     } catch (error) {
-        console.error("Error IA:", error);
+        console.error("Error estrés:", error);
         const nivelEstres = calcularEstres(perfil, actividades);
         actualizarUIEstresLocal(nivelEstres);
     }
@@ -1179,56 +1248,364 @@ function cerrarDetalle() {
     if (panel) panel.style.display = "none";
 }
 
-// ==================== NUEVA ENCUESTA PROFESIONAL E IA ====================
 
-/**
- * Envia las respuestas detalladas de la encuesta al backend para que la IA
- * procese el nivel de estrés y devuelva recomendaciones personalizadas.
- */
-async function enviarEncuestaProfesional() {
+// ==================== ENCUESTA MEJORADA ====================
+const encuestaRespuestas = {
+    energia: null,
+    concentracion: null,
+    estado_animo: null,
+    presion_percibida: null
+};
+
+const encuestaLabels = {
+    1: "Muy mal", 2: "Mal", 3: "Regular", 4: "Bien", 5: "Muy bien"
+};
+
+function seleccionarEmoji(btn, dimension, valor) {
+    // Deseleccionar todos los de esa dimensión
+    btn.closest(".encuesta-emojis").querySelectorAll(".emoji-btn")
+        .forEach(b => b.classList.remove("seleccionado"));
+
+    // Seleccionar el clickeado
+    btn.classList.add("seleccionado");
+    encuestaRespuestas[dimension] = valor;
+
+    // Actualizar label
+    const labelId = dimension === "presion_percibida"
+        ? `val-presion_percibida`
+        : `val-${dimension}`;
+    const label = document.getElementById(labelId);
+    if (label) label.textContent = encuestaLabels[valor];
+}
+
+async function enviarEncuesta() {
     const usuarioId = localStorage.getItem("usuario_id");
     if (!usuarioId) return;
 
-    // Capturamos métricas cuantitativas basadas en escalas profesionales (1 al 5)
-    const datosEncuesta = {
-        energia_fisica: parseInt(document.querySelector('input[name="energia"]:checked')?.value) || 3,
-        carga_mental:   parseInt(document.querySelector('input[name="mente"]:checked')?.value) || 3,
-        estado_animo:   parseInt(document.querySelector('input[name="animo"]:checked')?.value) || 3,
-        comentario_opcional: document.getElementById("encuesta-comentario")?.value.trim() || ""
-    };
+    const { energia, concentracion, estado_animo, presion_percibida } = encuestaRespuestas;
 
-    // Deshabilitar controles visualmente mientras la IA "piensa"
-    const contenedor = document.getElementById("seccion-encuesta");
-    if (contenedor) contenedor.style.opacity = "0.5";
-    mostrarToast("La IA está analizando tu estado actual...");
+    if (!energia || !concentracion || !estado_animo || !presion_percibida) {
+        mostrarToast("Por favor responde todas las dimensiones");
+        return;
+    }
+
+    const comentario = document.getElementById("encuesta-comentario")?.value.trim() || "";
+
+    const btnEnviar = document.querySelector("#seccion-encuesta .btn-principal");
+    if (btnEnviar) {
+        btnEnviar.textContent = "Guardando...";
+        btnEnviar.disabled = true;
+    }
 
     try {
-        // Apuntamos a tu endpoint que procesará los datos con IA
-        const respuesta = await fetch(`/api/estres/analizar-ia/${usuarioId}`, {
+        const res = await fetch(`/api/encuesta/${usuarioId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(datosEncuesta)
+            body: JSON.stringify({ energia, concentracion, estado_animo, presion_percibida, comentario })
         });
 
-        if (!respuesta.ok) throw new Error("Error en el diagnóstico de IA");
+        if (!res.ok) throw new Error("Error al guardar encuesta");
 
-        const resultadoIA = await respuesta.json();
-        
-        // Renderizamos inmediatamente el diagnóstico inteligente en la interfaz
-        actualizarUIEstres(resultadoIA);
-        
-        if (document.getElementById("encuesta-respuesta")) {
-            document.getElementById("encuesta-respuesta").innerHTML = `
-                <div class="feedback-ia-exito">
-                    <strong>Análisis de IA completado:</strong> Se ha recalculado tu fase de estrés a <span>${resultadoIA.fase}</span> y actualizado tus recomendaciones.
-                </div>
-            `;
-        }
+        const badge = document.getElementById("encuesta-badge-estado");
+        if (badge) badge.style.display = "inline-block";
 
-    } catch (error) {
-        console.error("Error al procesar encuesta con IA:", error);
-        mostrarToast("No pudimos conectar con el motor de IA");
+        document.getElementById("encuesta-respuesta").textContent =
+            "✅ Encuesta registrada correctamente.";
+
+        mostrarToast("Encuesta guardada");
+
+    } catch (e) {
+        console.error(e);
+        mostrarToast("Error al enviar encuesta");
     } finally {
-        if (contenedor) contenedor.style.opacity = "1";
+        if (btnEnviar) {
+            btnEnviar.textContent = "Guardar encuesta";
+            btnEnviar.disabled = false;
+        }
     }
+}
+
+async function verificarEncuestaHoy() {
+    const usuarioId = localStorage.getItem("usuario_id");
+    if (!usuarioId) return;
+
+    try {
+        const res = await fetch(`/api/encuesta/${usuarioId}/hoy`);
+        const data = await res.json();
+
+        if (data.respondida) {
+            const badge = document.getElementById("encuesta-badge-estado");
+            if (badge) badge.style.display = "inline-block";
+
+            // Marcar los emojis con las respuestas guardadas
+            ["energia", "concentracion", "estado_animo", "presion_percibida"].forEach(dim => {
+                const valor = data[dim];
+                if (!valor) return;
+                const contenedor = document.querySelector(`.encuesta-emojis[data-dimension="${dim}"]`);
+                if (!contenedor) return;
+                const btn = contenedor.querySelector(`[data-valor="${valor}"]`);
+                if (btn) {
+                    btn.classList.add("seleccionado");
+                    encuestaRespuestas[dim] = valor;
+                    const label = document.getElementById(`val-${dim}`);
+                    if (label) label.textContent = encuestaLabels[valor];
+                }
+            });
+
+            if (data.comentario) {
+                const textarea = document.getElementById("encuesta-comentario");
+                if (textarea) textarea.value = data.comentario;
+            }
+
+            document.getElementById("encuesta-respuesta").textContent =
+                "✅ Ya respondiste la encuesta hoy. Puedes actualizarla si quieres.";
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// ==================== ANÁLISIS ====================
+let graficaDias = null;
+let graficaCategorias = null;
+let graficaBienestar = null;
+
+async function cargarAnalisis() {
+    const usuarioId = localStorage.getItem("usuario_id");
+    if (!usuarioId) return;
+
+    try {
+        const res = await fetch(`/api/analisis/${usuarioId}`);
+        if (!res.ok) throw new Error("Error al cargar análisis");
+        const data = await res.json();
+        renderAnalisis(data);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderAnalisis(data) {
+    const { fase, actividades_por_dia, categorias, encuestas_semana, stats, patrones, dias } = data;
+
+    // ── Stats rápidos ──
+    document.getElementById("an-total-semana").textContent = stats.total_semana;
+    document.getElementById("an-completadas-semana").textContent = stats.completadas_semana;
+    document.getElementById("an-tasa-semana").textContent = `${stats.tasa_semana}%`;
+    document.getElementById("an-fase").textContent = fase.fase;
+
+    // ── Alertas e insights ──
+    const alertasDiv = document.getElementById("analisis-alertas");
+    const todasAlertas = [...(patrones.alertas || []), ...(patrones.insights || [])];
+    alertasDiv.innerHTML = todasAlertas.length === 0 ? "" : todasAlertas.map(a => `
+        <div class="alerta-item ${a.tipo === 'danger' ? 'alerta-danger' : a.tipo === 'warning' ? 'alerta-warning' : 'alerta-insight'}">
+            <span class="alerta-icono">${a.icono}</span>
+            <span>${a.texto}</span>
+        </div>
+    `).join("");
+
+    // ── Fase de estrés ──
+    const badge = document.getElementById("an-fase-badge");
+    badge.textContent = fase.fase;
+    badge.className = `fase-indicador fase-${fase.fase.toLowerCase()}`;
+
+    const barraFase = document.getElementById("an-fase-barra");
+    barraFase.style.width = fase.porcentaje + "%";
+    barraFase.style.background = fase.color;
+
+    document.getElementById("an-fase-texto").textContent =
+        `Puntuación: ${fase.puntos} — ${getDescripcionFase(fase.fase)}`;
+
+    document.getElementById("an-recomendaciones").innerHTML = fase.recomendaciones.map(rec => `
+        <div class="recomendacion-item">
+            <div class="rec-icono">${rec.icono}</div>
+            <div class="rec-texto">${rec.texto}</div>
+        </div>
+    `).join("");
+
+    // ── Insights panel ──
+    const insightsDiv = document.getElementById("analisis-insights");
+    insightsDiv.innerHTML = patrones.insights && patrones.insights.length > 0
+        ? patrones.insights.map(i => `
+            <div class="recomendacion-item">
+                <div class="rec-icono">${i.icono}</div>
+                <div class="rec-texto">${i.texto}</div>
+            </div>`).join("")
+        : "<p style='opacity:0.4; font-size:0.9rem;'>Usa la app unos días más para detectar patrones en tu comportamiento.</p>";
+
+    // ── Gráfica 1: Actividades por día ──
+    const labelsDias = dias.map(d =>
+        new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "numeric" })
+    );
+
+    if (graficaDias) { graficaDias.destroy(); graficaDias = null; }
+    graficaDias = new Chart(document.getElementById("grafica-dias").getContext("2d"), {
+        type: "bar",
+        data: {
+            labels: labelsDias,
+            datasets: [
+                {
+                    label: "Completadas",
+                    data: actividades_por_dia.map(d => d.completadas),
+                    backgroundColor: "#4CB8A4",
+                    borderRadius: 6
+                },
+                {
+                    label: "Pendientes",
+                    data: actividades_por_dia.map(d => d.pendientes),
+                    backgroundColor: "#334155",
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: "#94A3B8", font: { size: 11 } } } },
+            scales: {
+                x: { stacked: true, ticks: { color: "#64748B" }, grid: { color: "#1E293B" } },
+                y: { stacked: true, ticks: { color: "#64748B", stepSize: 1 }, grid: { color: "#1E293B" } }
+            }
+        }
+    });
+
+    // ── Gráfica 2: Categorías (dona) ──
+    const catLabels = Object.keys(categorias);
+    const catData   = catLabels.map(c => categorias[c].total);
+    const catColors = ["#4CB8A4", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
+
+    if (graficaCategorias) { graficaCategorias.destroy(); graficaCategorias = null; }
+
+    // Limpiar mensajes anteriores del contenedor
+    const wrapCat = document.getElementById("grafica-categorias").closest(".perfil-card");
+    wrapCat.querySelectorAll(".sin-datos").forEach(p => p.remove());
+    document.getElementById("grafica-categorias").style.display = "block";
+
+    if (catLabels.length === 0) {
+        document.getElementById("grafica-categorias").style.display = "none";
+        const msg = document.createElement("p");
+        msg.className = "sin-datos";
+        msg.style.cssText = "opacity:0.4; font-size:0.85rem; text-align:center; padding:2rem 0;";
+        msg.textContent = "Sin actividades esta semana";
+        wrapCat.appendChild(msg);
+    } else {
+        graficaCategorias = new Chart(document.getElementById("grafica-categorias").getContext("2d"), {
+            type: "doughnut",
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: catColors.slice(0, catLabels.length),
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: "65%",
+                plugins: {
+                    legend: {
+                        position: "right",
+                        labels: { color: "#94A3B8", font: { size: 11 }, padding: 12 }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Gráfica 3: Bienestar (líneas) ──
+    const encConDatos = encuestas_semana.filter(e => e.energia !== null);
+
+    if (graficaBienestar) { graficaBienestar.destroy(); graficaBienestar = null; }
+
+    // Limpiar mensajes anteriores
+    const wrapBienestar = document.getElementById("grafica-bienestar").closest(".perfil-card");
+    wrapBienestar.querySelectorAll(".sin-datos").forEach(p => p.remove());
+    document.getElementById("grafica-bienestar").style.display = "block";
+
+    if (encConDatos.length < 2) {
+        document.getElementById("grafica-bienestar").style.display = "none";
+        const msg = document.createElement("p");
+        msg.className = "sin-datos";
+        msg.style.cssText = "opacity:0.4; font-size:0.85rem; text-align:center; padding:1.5rem 0;";
+        msg.textContent = "Responde la encuesta diaria al menos 2 días para ver tu evolución de bienestar.";
+        wrapBienestar.appendChild(msg);
+    } else {
+        const labelsEnc = encuestas_semana.map(e =>
+            new Date(e.fecha + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "numeric" })
+        );
+
+        graficaBienestar = new Chart(document.getElementById("grafica-bienestar").getContext("2d"), {
+            type: "line",
+            data: {
+                labels: labelsEnc,
+                datasets: [
+                    {
+                        label: "⚡ Energía",
+                        data: encuestas_semana.map(e => e.energia),
+                        borderColor: "#4CB8A4",
+                        backgroundColor: "rgba(76,184,164,0.1)",
+                        tension: 0.4, fill: true, pointRadius: 4, spanGaps: true
+                    },
+                    {
+                        label: "🧠 Concentración",
+                        data: encuestas_semana.map(e => e.concentracion),
+                        borderColor: "#3B82F6",
+                        backgroundColor: "rgba(59,130,246,0.05)",
+                        tension: 0.4, fill: false, pointRadius: 4, spanGaps: true
+                    },
+                    {
+                        label: "💆 Ánimo",
+                        data: encuestas_semana.map(e => e.estado_animo),
+                        borderColor: "#F59E0B",
+                        backgroundColor: "rgba(245,158,11,0.05)",
+                        tension: 0.4, fill: false, pointRadius: 4, spanGaps: true
+                    },
+                    {
+                        label: "🔥 Presión",
+                        data: encuestas_semana.map(e => e.presion_percibida),
+                        borderColor: "#EF4444",
+                        backgroundColor: "rgba(239,68,68,0.05)",
+                        tension: 0.4, fill: false, pointRadius: 4, spanGaps: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: "#94A3B8", font: { size: 11 } } } },
+                scales: {
+                    x: { ticks: { color: "#64748B" }, grid: { color: "#1E293B" } },
+                    y: {
+                        min: 1, max: 5,
+                        ticks: {
+                            color: "#64748B",
+                            stepSize: 1,
+                            callback: v => ["", "Muy mal", "Mal", "Regular", "Bien", "Muy bien"][v] || v
+                        },
+                        grid: { color: "#1E293B" }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function mostrarModalVerificacion(mensaje) {
+    document.getElementById("modalTitulo").innerText = "Cuenta no verificada";
+    document.getElementById("modalMensaje").innerText = mensaje;
+    
+    // Agregar botón de verificar al modal
+    const btnCerrar = document.querySelector(".btn-cerrar");
+    btnCerrar.innerHTML = `
+        <label for="btn-modal" onclick="irAVerificar()">Verificar ahora</label>
+        <label for="btn-modal" style="margin-left:8px; background:#334155;">Cerrar</label>
+    `;
+    document.getElementById("btn-modal").checked = true;
+}
+
+function irAVerificar() {
+    const usuarioId = localStorage.getItem("usuario_id_temp");
+    if (!usuarioId) {
+        alert("No se pudo obtener el usuario. Regístrate de nuevo.");
+        return;
+    }
+    window.location.href = `verificar.html?id=${usuarioId}&tipo=registro`;
 }

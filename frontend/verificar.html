@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="img/icono.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="header">
+    <a href="index.html" class="logo-container">
+        <img src="img/logo.png" alt="Logo">
+        <span>Planificador</span>
+    </a>
+</header>
+
+<main class="center">
+<section class="form-card">
+    <div style="text-align:center; margin-bottom:1.5rem;">
+        <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔐</div>
+        <h2 id="mfa-titulo">Verificación</h2>
+        <p id="mfa-subtitulo" style="color:#64748B; font-size:0.9rem; margin-top:0.5rem;">
+            Ingresa el código de 6 dígitos enviado a tu correo
+        </p>
+    </div>
+
+    <!-- Inputs del código -->
+    <div class="mfa-inputs">
+        <input class="mfa-input" type="text" maxlength="1" id="d1" oninput="avanzar(this, 'd2')" onkeydown="retroceder(event, this, null)">
+        <input class="mfa-input" type="text" maxlength="1" id="d2" oninput="avanzar(this, 'd3')" onkeydown="retroceder(event, this, 'd1')">
+        <input class="mfa-input" type="text" maxlength="1" id="d3" oninput="avanzar(this, 'd4')" onkeydown="retroceder(event, this, 'd2')">
+        <input class="mfa-input" type="text" maxlength="1" id="d4" oninput="avanzar(this, 'd5')" onkeydown="retroceder(event, this, 'd3')">
+        <input class="mfa-input" type="text" maxlength="1" id="d5" oninput="avanzar(this, 'd6')" onkeydown="retroceder(event, this, 'd4')">
+        <input class="mfa-input" type="text" maxlength="1" id="d6" oninput="verificarAuto()"    onkeydown="retroceder(event, this, 'd5')">
+    </div>
+
+    <p id="mfa-error" style="color:#ef4444; font-size:0.85rem; text-align:center; min-height:1.2rem; margin-top:0.5rem;"></p>
+    <p id="mfa-exito" style="color:#4CB8A4; font-size:0.85rem; text-align:center; min-height:1.2rem;"></p>
+
+    <button class="btn-principal" style="width:100%; margin-top:1rem;" onclick="verificarCodigo()">
+        Verificar código
+    </button>
+
+    <div style="text-align:center; margin-top:1rem;">
+        <button onclick="reenviarCodigo()" style="background:none; border:none; color:#3B82F6; cursor:pointer; font-size:0.85rem;" id="btn-reenviar">
+            ¿No recibiste el código? Reenviar
+        </button>
+        <p id="contador-reenvio" style="color:#64748B; font-size:0.8rem; display:none;"></p>
+    </div>
+</section>
+</main>
+
+<footer class="footer"></footer>
+<script src="verificar.js"></script>
+</body>
+</html>

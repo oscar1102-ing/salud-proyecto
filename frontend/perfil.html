@@ -36,7 +36,7 @@
 </div>
 
 <header class="header">
-    <a href="index.html" class="logo-container">
+    <a href="#" onclick="mostrarSeccion('inicio')" class="logo-container">
         <img src="img/logo.png">
         <span>Panel</span>
     </a>
@@ -50,7 +50,7 @@
         <div class="menu">
             <button id="btn-inicio" onclick="mostrarSeccion('inicio')">Inicio</button>
             <button id="btn-tareas" onclick="mostrarSeccion('tareas')">Actividades</button>
-            <button id="btn-fase" onclick="mostrarSeccion('fase')">Fase estrés</button>
+            <button id="btn-analisis" onclick="mostrarSeccion('analisis')">Análisis</button>
             <button id="btn-historial" onclick="mostrarSeccion('historial')">Historial</button>
             <button id="btn-perfil" onclick="mostrarSeccion('perfil')">Perfil</button>
         </div>
@@ -154,17 +154,84 @@
                     </div>
 
                     <!-- Encuesta -->
-                    <div class="dash-panel">
+                    <!-- Encuesta -->
+                    <div class="dash-panel" id="seccion-encuesta">
                         <div class="dash-panel-header">
-                            <h3>¿Cómo te sientes hoy?</h3>
+                            <h3>¿Cómo estás hoy?</h3>
+                            <span class="gemini-badge" id="encuesta-badge-estado" style="display:none;">✓ Respondida</span>
                         </div>
-                        <div class="encuesta-opciones">
-                            <button class="encuesta-btn" onclick="responderEncuesta('Muy bien', 1)">😄 Muy bien</button>
-                            <button class="encuesta-btn" onclick="responderEncuesta('Bien', 2)">🙂 Bien</button>
-                            <button class="encuesta-btn" onclick="responderEncuesta('Regular', 3)">😐 Regular</button>
-                            <button class="encuesta-btn" onclick="responderEncuesta('Mal', 4)">😟 Mal</button>
-                            <button class="encuesta-btn" onclick="responderEncuesta('Muy mal', 5)">😩 Muy mal</button>
+
+                        <div id="encuesta-formulario">
+                            <!-- Energía -->
+                            <div class="encuesta-dimension">
+                                <div class="encuesta-dim-label">
+                                    <span class="encuesta-dim-nombre">⚡ Energía física</span>
+                                    <span class="encuesta-dim-valor" id="val-energia">—</span>
+                                </div>
+                                <div class="encuesta-emojis" data-dimension="energia">
+                                    <button class="emoji-btn" data-valor="1" onclick="seleccionarEmoji(this, 'energia', 1)">😩</button>
+                                    <button class="emoji-btn" data-valor="2" onclick="seleccionarEmoji(this, 'energia', 2)">😟</button>
+                                    <button class="emoji-btn" data-valor="3" onclick="seleccionarEmoji(this, 'energia', 3)">😐</button>
+                                    <button class="emoji-btn" data-valor="4" onclick="seleccionarEmoji(this, 'energia', 4)">🙂</button>
+                                    <button class="emoji-btn" data-valor="5" onclick="seleccionarEmoji(this, 'energia', 5)">😄</button>
+                                </div>
+                            </div>
+
+                            <!-- Concentración -->
+                            <div class="encuesta-dimension">
+                                <div class="encuesta-dim-label">
+                                    <span class="encuesta-dim-nombre">🧠 Concentración</span>
+                                    <span class="encuesta-dim-valor" id="val-concentracion">—</span>
+                                </div>
+                                <div class="encuesta-emojis" data-dimension="concentracion">
+                                    <button class="emoji-btn" data-valor="1" onclick="seleccionarEmoji(this, 'concentracion', 1)">😩</button>
+                                    <button class="emoji-btn" data-valor="2" onclick="seleccionarEmoji(this, 'concentracion', 2)">😟</button>
+                                    <button class="emoji-btn" data-valor="3" onclick="seleccionarEmoji(this, 'concentracion', 3)">😐</button>
+                                    <button class="emoji-btn" data-valor="4" onclick="seleccionarEmoji(this, 'concentracion', 4)">🙂</button>
+                                    <button class="emoji-btn" data-valor="5" onclick="seleccionarEmoji(this, 'concentracion', 5)">😄</button>
+                                </div>
+                            </div>
+
+                            <!-- Estado de ánimo -->
+                            <div class="encuesta-dimension">
+                                <div class="encuesta-dim-label">
+                                    <span class="encuesta-dim-nombre">💆 Estado de ánimo</span>
+                                    <span class="encuesta-dim-valor" id="val-estado_animo">—</span>
+                                </div>
+                                <div class="encuesta-emojis" data-dimension="estado_animo">
+                                    <button class="emoji-btn" data-valor="1" onclick="seleccionarEmoji(this, 'estado_animo', 1)">😩</button>
+                                    <button class="emoji-btn" data-valor="2" onclick="seleccionarEmoji(this, 'estado_animo', 2)">😟</button>
+                                    <button class="emoji-btn" data-valor="3" onclick="seleccionarEmoji(this, 'estado_animo', 3)">😐</button>
+                                    <button class="emoji-btn" data-valor="4" onclick="seleccionarEmoji(this, 'estado_animo', 4)">🙂</button>
+                                    <button class="emoji-btn" data-valor="5" onclick="seleccionarEmoji(this, 'estado_animo', 5)">😄</button>
+                                </div>
+                            </div>
+
+                            <!-- Presión percibida -->
+                            <div class="encuesta-dimension">
+                                <div class="encuesta-dim-label">
+                                    <span class="encuesta-dim-nombre">🔥 Presión percibida</span>
+                                    <span class="encuesta-dim-valor" id="val-presion_percibida">—</span>
+                                </div>
+                                <div class="encuesta-emojis" data-dimension="presion_percibida">
+                                    <button class="emoji-btn" data-valor="1" onclick="seleccionarEmoji(this, 'presion_percibida', 1)">😄</button>
+                                    <button class="emoji-btn" data-valor="2" onclick="seleccionarEmoji(this, 'presion_percibida', 2)">🙂</button>
+                                    <button class="emoji-btn" data-valor="3" onclick="seleccionarEmoji(this, 'presion_percibida', 3)">😐</button>
+                                    <button class="emoji-btn" data-valor="4" onclick="seleccionarEmoji(this, 'presion_percibida', 4)">😟</button>
+                                    <button class="emoji-btn" data-valor="5" onclick="seleccionarEmoji(this, 'presion_percibida', 5)">😩</button>
+                                </div>
+                            </div>
+
+                            <!-- Comentario opcional -->
+                            <div class="encuesta-comentario-wrap">
+                                <textarea id="encuesta-comentario" placeholder="¿Algo más que quieras contarle a la IA? (opcional)" rows="2"></textarea>
+                            </div>
+
+                            <button class="btn-principal" style="width:100%; margin-top:0.75rem;" onclick="enviarEncuesta()">
+                                🤖 Analizar con IA
+                            </button>
                         </div>
+
                         <p id="encuesta-respuesta" style="font-size:0.85rem; color:#4CB8A4; margin-top:0.75rem; min-height:1.2rem;"></p>
                     </div>
 
@@ -321,24 +388,96 @@
             </div>
         </section>
 
-        <!-- FASE ESTRÉS -->
-        <section id="fase" class="seccion">
-            <div class="perfil-card">
-                <h3>Fase de estrés</h3>
+        <!-- ANÁLISIS -->
+        <section id="analisis" class="seccion">
 
-                <div class="fase-indicador" id="fase-badge">Calculando...</div>
-
-                <div class="barra">
-                    <div class="nivel" style="transition: width 0.8s ease;"></div>
+            <!-- Fila de stats rápidos -->
+            <div class="dashboard-cards" style="margin-bottom:1.5rem;" id="analisis-stats-cards">
+                <div class="dash-card">
+                    <div class="dash-card-icon">📅</div>
+                    <div>
+                        <p class="dash-card-label">Actividades esta semana</p>
+                        <p class="dash-card-valor" id="an-total-semana">—</p>
+                    </div>
                 </div>
-
-                <p id="fase-texto">Fase actual: —</p>
-
-                <h4 style="margin-top: 24px; margin-bottom: 12px;">Recomendaciones</h4>
-                <div id="lista-recomendaciones">
-                    <p style="opacity:0.5">Cargando recomendaciones...</p>
+                <div class="dash-card">
+                    <div class="dash-card-icon">✅</div>
+                    <div>
+                        <p class="dash-card-label">Completadas</p>
+                        <p class="dash-card-valor" id="an-completadas-semana">—</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon">📈</div>
+                    <div>
+                        <p class="dash-card-label">Tasa de completado</p>
+                        <p class="dash-card-valor" id="an-tasa-semana">—</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon">🧠</div>
+                    <div>
+                        <p class="dash-card-label">Fase de estrés</p>
+                        <p class="dash-card-valor" id="an-fase">—</p>
+                    </div>
                 </div>
             </div>
+
+            <!-- Alertas e insights -->
+            <div id="analisis-alertas" style="margin-bottom:1.5rem;"></div>
+
+            <!-- Grid de gráficas -->
+            <div class="analisis-grid">
+
+                <!-- Gráfica 1: Actividades por día -->
+                <div class="perfil-card">
+                    <div class="perfil-header">
+                        <h3>Actividades esta semana</h3>
+                    </div>
+                    <canvas id="grafica-dias" height="200"></canvas>
+                </div>
+
+                <!-- Gráfica 2: Distribución por categoría -->
+                <div class="perfil-card">
+                    <div class="perfil-header">
+                        <h3>Por categoría</h3>
+                    </div>
+                    <canvas id="grafica-categorias" height="200"></canvas>
+                </div>
+
+                <!-- Gráfica 3: Bienestar (encuestas) -->
+                <div class="perfil-card" style="grid-column: 1 / -1;">
+                    <div class="perfil-header">
+                        <h3>Evolución del bienestar</h3>
+                        <span style="font-size:0.78rem; color:#64748B;">Basado en tus encuestas diarias</span>
+                    </div>
+                    <canvas id="grafica-bienestar" height="120"></canvas>
+                </div>
+
+            </div>
+
+            <!-- Fase de estrés detallada -->
+            <div class="perfil-card" style="margin-top:1.5rem;">
+                <div class="perfil-header">
+                    <h3>Fase de estrés actual</h3>
+                    <div class="fase-indicador" id="an-fase-badge">—</div>
+                </div>
+                <div class="barra" style="margin:1rem 0;">
+                    <div class="nivel" id="an-fase-barra" style="transition: width 0.8s ease;"></div>
+                </div>
+                <p id="an-fase-texto" style="font-size:0.85rem; color:#64748B; margin-bottom:1.25rem;"></p>
+                <h4 style="margin-bottom:0.75rem; font-size:0.9rem; color:#94A3B8; text-transform:uppercase; letter-spacing:0.05em;">Recomendaciones personalizadas</h4>
+                <div id="an-recomendaciones"></div>
+            </div>
+
+            <!-- Insights de patrones -->
+            <div class="perfil-card" style="margin-top:1.5rem;" id="analisis-insights-panel">
+                <div class="perfil-header">
+                    <h3>💡 Patrones detectados</h3>
+                </div>
+                <div id="analisis-insights"></div>
+            </div>
+
         </section>
         
         <!-- HISTORIAL -->
@@ -409,6 +548,8 @@
 
 <footer class="footer"></footer>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>

@@ -51,16 +51,11 @@ def verificar_email_existe(email: str):
 def buscar_por_email(email):
     conn = conectar_base()
     cursor = conn.cursor()
-
-    query = "SELECT id, nombre, email, password FROM usuarios WHERE email = %s"
+    query = "SELECT id, nombre, email, password, verificado FROM usuarios WHERE email = %s"
     cursor.execute(query, (email,))
-
     result = cursor.fetchone()
-
     cursor.close()
     conn.close()
-
     if result:
         return result
-
     return None
