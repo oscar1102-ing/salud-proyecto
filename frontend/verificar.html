@@ -46,6 +46,21 @@
         <button onclick="reenviarCodigo()" style="background:none; border:none; color:#3B82F6; cursor:pointer; font-size:0.85rem;" id="btn-reenviar">
             ¿No recibiste el código? Reenviar
         </button>
+        
+        <div style="text-align:center; margin-top:0.5rem;">
+            <button onclick="mostrarCambiarCorreo()" style="background:none; border:none; color:#64748B; cursor:pointer; font-size:0.8rem;">
+                ¿Correo incorrecto? Cambiarlo
+            </button>
+        </div>
+
+        <!-- Form cambiar correo (oculto por defecto) -->
+        <div id="form-cambiar-correo" style="display:none; margin-top:1rem;">
+            <input type="email" id="nuevo-correo" placeholder="Nuevo correo electrónico" 
+                   style="width:100%; padding:10px; background:#0F172A; border:1px solid #334155; border-radius:6px; color:white; margin-bottom:0.5rem;">
+            <button class="btn-principal" style="width:100%;" onclick="cambiarCorreo()">
+                Actualizar correo y reenviar código
+            </button>
+        </div>
         <p id="contador-reenvio" style="color:#64748B; font-size:0.8rem; display:none;"></p>
     </div>
 </section>
