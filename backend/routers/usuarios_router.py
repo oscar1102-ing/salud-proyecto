@@ -434,7 +434,7 @@ def cambiar_correo(usuario_id: int, datos: dict):
     conn = conectar_base()
     cur  = conn.cursor()
     cur.execute("""
-        INSERT INTO codigos_verificacion (usuario_id, codigo, expira_en)
+        INSERT INTO codigos_mfa (usuario_id, codigo, expira_en)
         VALUES (%s, %s, NOW() + INTERVAL '10 minutes')
         ON CONFLICT (usuario_id) DO UPDATE 
         SET codigo = %s, expira_en = NOW() + INTERVAL '10 minutes'
