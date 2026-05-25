@@ -1,15 +1,17 @@
-import resend
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 import random
 import string
+import os
 
-resend.api_key = "re_MU356q89_97bh4AcMcmp8oMhLuqj2gzyo"  # ← tu API key de Resend
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
 
 def generar_codigo():
     return ''.join(random.choices(string.digits, k=6))
 
 def enviar_codigo(destinatario: str, codigo: str, tipo: str):
     print(f"=== ENVIANDO A: {destinatario} | CÓDIGO: {codigo} ===")
-
+    
     if tipo == "registro":
         asunto = "Verifica tu cuenta — Planificador Anti-Estrés"
     else:
@@ -27,15 +29,27 @@ def enviar_codigo(destinatario: str, codigo: str, tipo: str):
     """
 
     try:
-        params = {
-            "from": "Planificador <onboarding@resend.dev>",
-            "to": [destinatario],
-            "subject": asunto,
-            "html": cuerpo
-        }
-        resend.Emails.send(params)
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key['api-key'] = BREVO_API_KEY
+
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+            sib_api_v3_sdk.ApiClient(configuration)
+        )
+
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": destinatario}],
+            sender={"name": "Planificador Anti-Estrés", "email": "noreply@planificador.com"},
+            subject=asunto,
+            html_content=cuerpo
+        )
+
+        api_instance.send_transac_email(send_smtp_email)
         print("=== CORREO ENVIADO ===")
         return True
+
+    except ApiException as e:
+        print(f"=== ERROR BREVO: {e} ===")
+        return False
     except Exception as e:
         print(f"=== ERROR: {e} ===")
         return False
