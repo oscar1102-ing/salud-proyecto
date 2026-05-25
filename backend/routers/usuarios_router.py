@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 from backend.repositories import actividades_repository 
 from backend.repositories import perfil_repository
 from backend.services import estres_service
-from backend.services import gemini_service
 from datetime import datetime, timedelta
 from backend.repositories import encuesta_repository
 from backend.services import email_service
@@ -167,81 +166,7 @@ def historial_actividad(actividad_id: int, usuario_id: int):
 def historial_usuario(usuario_id: int):
     return actividades_repository.obtener_historial_usuario(usuario_id)
     
-@router.get("/gemini/analisis/{usuario_id}")
-def analisis_gemini(usuario_id: int):
-    perfil = perfil_repository.obtener_perfil_completo(usuario_id)
-    if not perfil:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    todas = actividades_repository.obtener_actividades(usuario_id)
-    fase_data = estres_service.calcular_fase_estres(
-        dict(perfil), [dict(a) for a in todas]
-    )
-
-    cache = gemini_service.obtener_cache(usuario_id)
-    if cache:
-        print(f"Usando caché para usuario {usuario_id}")
-        return {
-            "fase": fase_data["fase"],
-            "puntos": fase_data["puntos"],
-            "color": fase_data["color"],
-            "porcentaje": fase_data["porcentaje"],
-            "recomendaciones": cache.get("recomendaciones", []),
-            "resumen": cache.get("resumen", ""),
-            "ia_activa": True,
-            "desde_cache": True
-        }
-
-    print(f"Llamando a Gemini para usuario {usuario_id}")
-    hoy = datetime.now().strftime("%Y-%m-%d")
-    actividades_hoy = [dict(a) for a in todas if str(a["fecha"]) == hoy]
-
-    historial = actividades_repository.obtener_historial_usuario(usuario_id)
-    hace_7_dias = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-    historial_reciente = [
-        dict(a) for a in historial if str(a["fecha"]) >= hace_7_dias
-    ]
-
-    # Obtener encuesta de hoy
-    encuesta_hoy = encuesta_repository.obtener_encuesta_hoy(usuario_id)
-    encuesta_dict = dict(encuesta_hoy) if encuesta_hoy else {"respondida": False}
-
-    gemini_data = gemini_service.analizar_usuario(
-        dict(perfil),
-        actividades_hoy,
-        historial_reciente,
-        encuesta_dict
-    )
-
-    if gemini_data["exito"]:
-        gemini_service.guardar_cache(usuario_id, {
-            "recomendaciones": gemini_data["recomendaciones"],
-            "resumen": gemini_data["resumen"]
-        })
-
-    return {
-        "fase": fase_data["fase"],
-        "puntos": fase_data["puntos"],
-        "color": fase_data["color"],
-        "porcentaje": fase_data["porcentaje"],
-        "recomendaciones": gemini_data["recomendaciones"] if gemini_data["exito"] else fase_data["recomendaciones"],
-        "resumen": gemini_data.get("resumen", ""),
-        "ia_activa": gemini_data["exito"],
-        "desde_cache": False
-    }
-
-# Endpoint para invalidar caché manualmente (se llama al guardar perfil o completar actividad)
-@router.post("/gemini/invalidar/{usuario_id}")
-def invalidar_cache_gemini(usuario_id: int):
-    gemini_service.invalidar_cache(usuario_id)
-    return {"mensaje": "Caché invalidado"}
-    
-@router.post("/encuesta/{usuario_id}")
-def guardar_encuesta(usuario_id: int, datos: dict):
-    resultado = encuesta_repository.guardar_encuesta(usuario_id, datos)
-    # Invalidar caché para que Gemini regenere con los datos de la encuesta
-    gemini_service.invalidar_cache(usuario_id)
-    return resultado
 
 @router.get("/encuesta/{usuario_id}/hoy")
 def obtener_encuesta_hoy(usuario_id: int):
