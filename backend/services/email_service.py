@@ -38,7 +38,7 @@ def enviar_codigo(destinatario: str, codigo: str, tipo: str):
 
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=[{"email": destinatario}],
-            sender={"name": "Planificador Anti-Estrés", "email": "noreply@planificador.com"},
+            sender={"name": "Planificador salud", "email": "oscara200411@gmail.com"},
             subject=asunto,
             html_content=cuerpo
         )
