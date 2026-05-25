@@ -430,17 +430,21 @@ def cambiar_correo(usuario_id: int, datos: dict):
     conn.commit()
     cur.close(); conn.close()
     
-    # Generar y guardar nuevo código
+    # Generar nuevo código
     codigo = email_service.generar_codigo()
     
     conn = conectar_base()
     cur  = conn.cursor()
+    
+    # Eliminar código anterior si existe
+    cur.execute("DELETE FROM codigos_mfa WHERE usuario_id = %s", (usuario_id,))
+    
+    # Insertar nuevo código
     cur.execute("""
         INSERT INTO codigos_mfa (usuario_id, codigo, tipo, expira_en)
         VALUES (%s, %s, %s, NOW() + INTERVAL '10 minutes')
-        ON CONFLICT (usuario_id) DO UPDATE 
-        SET codigo = %s, tipo = %s, expira_en = NOW() + INTERVAL '10 minutes'
-    """, (usuario_id, codigo, tipo, codigo, tipo))
+    """, (usuario_id, codigo, tipo))
+    
     conn.commit()
     cur.close(); conn.close()
     
