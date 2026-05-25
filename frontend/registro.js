@@ -67,7 +67,7 @@ async function validarRegistro(event) {
     }
     
     if (edad < 0 || edad > 120) {
-        mostrarError("Ingresa una edad válida");
+        mostrarModal("Ingresa una edad válida (entre 1 y 120)", "Error");
         return;
     }
 
