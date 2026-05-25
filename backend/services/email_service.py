@@ -46,13 +46,9 @@ def enviar_codigo(destinatario: str, codigo: str, tipo: str):
     mensaje.attach(MIMEText(cuerpo, "html"))
 
     try:
-        servidor = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-        servidor.ehlo()
-        servidor.starttls()
-        servidor.ehlo()
-        servidor.login(EMAIL_REMITENTE, EMAIL_PASSWORD)
-        servidor.sendmail(EMAIL_REMITENTE, destinatario, mensaje.as_string())
-        servidor.quit()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as servidor:
+            servidor.login(EMAIL_REMITENTE, EMAIL_PASSWORD)
+            servidor.sendmail(EMAIL_REMITENTE, destinatario, mensaje.as_string())
         print("=== CORREO ENVIADO ===")
         return True
     except Exception as e:
