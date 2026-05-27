@@ -322,7 +322,7 @@ async function cargarInicio(perfil, actividades) {
     document.getElementById("inicio-horas-trabajo").textContent  = `${perfil.horas_trabajo}h`;
     document.getElementById("inicio-horas-descanso").textContent = `${perfil.horas_descanso}h`;
 
-    const fechaHoy = hoy.toISOString().split("T")[0];
+    const fechaHoy = obtenerFechaHoy();
     const actHoy = actividades.filter(a => a.fecha === fechaHoy);
     const completadas = actHoy.filter(a => a.estado === "Completada");
 
@@ -468,7 +468,7 @@ function calcularEstres(perfil, actividades) {
     if (perfil.horas_descanso < 6) puntos += 2;
     if (perfil.horas_descanso < 4) puntos += 1;
 
-    const hoy = new Date().toISOString().split("T")[0];
+    const hoy = obtenerFechaHoy();
     const altasPendientes = actividades.filter(a =>
         a.fecha === hoy && a.prioridad === "Alta" && a.estado === "Pendiente"
     ).length;
@@ -504,7 +504,7 @@ function responderEncuesta(respuesta, nivel) {
 // ==================== ACTIVIDADES ====================
 function mostrarFormActividad() {
     document.getElementById("form-actividad").style.display = "block";
-    document.getElementById("act-fecha").value = new Date().toISOString().split("T")[0];
+    document.getElementById("act-fecha").value = obtenerFechaHoy();
 }
 
 function ocultarFormActividad() {
@@ -592,7 +592,7 @@ function renderCalendario(actividades) {
 
     const primerDia  = new Date(anioActual, mesActual, 1).getDay();
     const diasEnMes  = new Date(anioActual, mesActual + 1, 0).getDate();
-    const fechaHoyStr = new Date().toISOString().split("T")[0];
+    const fechaHoyStr = obtenerFechaHoy();
 
     for (let i = 0; i < primerDia; i++) {
         const vacio = document.createElement("div");
@@ -645,7 +645,7 @@ function seleccionarDia(fecha, actividades) {
         return;
     }
 
-    const hoy = new Date().toISOString().split("T")[0];
+    const hoy = obtenerFechaHoy();
 
     lista.innerHTML = actsDia.map(a => {
         const puedeIniciar = fecha === hoy && a.estado === "Pendiente";
@@ -681,7 +681,7 @@ async function cargarActividades() {
         const actividades = await respuesta.json();
         todasActividades = actividades;
         renderCalendario(actividades);
-        const hoy = new Date().toISOString().split("T")[0];
+        const hoy = obtenerFechaHoy();
         seleccionarDia(hoy, actividades);
     } catch (error) {
         console.error("Error cargando actividades:", error);
@@ -908,7 +908,7 @@ async function cargarHistorial() {
         renderCalendarioHistorial();
 
         // Seleccionar hoy por defecto si tiene actividades
-        const hoy = new Date().toISOString().split("T")[0];
+        const hoy = obtenerFechaHoy();
         const tieneHoy = historialCompleto.some(a => a.fecha === hoy);
         if (tieneHoy) seleccionarDiaHistorial(hoy);
 
@@ -930,7 +930,7 @@ function renderCalendarioHistorial() {
 
     const primerDia = new Date(histAnioActual, histMesActual, 1).getDay();
     const diasEnMes = new Date(histAnioActual, histMesActual + 1, 0).getDate();
-    const fechaHoyStr = new Date().toISOString().split("T")[0];
+    const fechaHoyStr = obtenerFechaHoy();
 
     // Celdas vacías
     for (let i = 0; i < primerDia; i++) {
